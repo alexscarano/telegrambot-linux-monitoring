@@ -1,0 +1,19 @@
+{
+    "name": "alexscarano/telegrambot-linux-monitoring",
+    "description": "Telegram bot for monitoring a remotely linux server (homeprod, vps, etc...)",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "app\\":"app"
+        },
+        "files": []
+    },
+    "authors": [
+        {
+            "name": "alexscarano"
+        }
+    ],
+    "require": {
+        "irazasyed/telegram-bot-sdk": "^3.15"
+    }
+}
