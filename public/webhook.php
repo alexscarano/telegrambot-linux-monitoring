@@ -1,19 +1,22 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+
+require __DIR__ . '/../vendor/autoload.php';
 
 use app\core\Bot;
-use Telegram\Bot\Api;
 
-// Configuração
-$config = require __DIR__ . '../app/config/config.php';
-$telegram = new Api($config['telegram_bot_token']);
 
-// Verifica se é uma requisição válida
-$update = $telegram->getWebhookUpdate();
-$message = $update->getMessage();
+file_put_contents(__DIR__ . '/../log.txt', date('c') . " - Webhook ativado\n", FILE_APPEND);
 
-if ($message) {
+// Ler entrada do Telegram
+$input = file_get_contents("php://input");
+$data = json_decode($input, true);
+
+// Verificar se    mensagem de texto
+if (isset($data['message']['text'])) {
+    $mensagem = $data['message']['text'];
+
+    // Criar o bot e responder
     $bot = new Bot();
-    $bot->receiveCommand($message->getText());
+    $bot->receiveCommand($mensagem);
 }
