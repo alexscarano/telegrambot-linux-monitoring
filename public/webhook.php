@@ -19,7 +19,6 @@ if (isset($data['message']['text'])) {
                 $bot = new CommandHandler();
 
                 if (!$bot->verifyChat($chatId)){            
-                        $bot->sendMessage("Chat não autorizado."); // debug
                         return;
                 }
 

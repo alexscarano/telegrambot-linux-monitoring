@@ -22,12 +22,17 @@ class CommandHandler extends Bot{
                   $this->sendMessage('O serviço ' . $service . ' não está ativo');
             }
             catch (Exception $e){
-                $this->sendMessage('Ocorreu algum erro na execução do comando ' . $e->getMessage()); // Debug
+                $this->sendMessage('Ocorreu algum erro na execução do comando'); // Debug
             }
     }
 
-    public function sendBotStatus($command): void {
+    protected function sendBotStatus(): void {
             $this->sendMessage('Bot funcionando, pronto para receber comandos');
+    }
+
+    // Verifica se é um comando (não verifica se é valido, somente se tem '/' no começo do texto)
+    private static function IsCommand(string $command): bool{
+        return preg_match('/^\/\w+/', $command);
     }
 
     public function handleTextCommand(string $text): void{
@@ -35,24 +40,29 @@ class CommandHandler extends Bot{
         $partsArray = explode(' ', trim($text));
         $command = $partsArray[0] ?? '';
         $args = array_slice($partsArray, 1);
-       
+
+        if (!$this::IsCommand($command)) return;
+     
         if ($command === '/checkService'){
             if (!empty($args)){
                 foreach ($args as $arg){
                     $this->sendServiceIsActive($arg);
                 }
+                return;
             }
             else {
                 $this->sendMessage('Por favor forneça argumentos para o comando: exemplo apache2, mysql, nginx...');
+                return;
             }
         }
-        else if ($command === '/botStatus'){
-            $this->sendBotStatus($command);
+
+        if ($command === '/botStatus'){
+            $this->sendBotStatus();
+            return;
         }
-        else {
-            $this->sendDefaultResponse();
-        }
-    
+        
+        $this->sendDefaultResponse();
+        
     }
 
 
