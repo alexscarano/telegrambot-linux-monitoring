@@ -3,11 +3,17 @@
 namespace app\core;
 
 class Monitor {
-    public static function checkServiceIsActive(string $service): bool{
-
-        $output = trim(shell_exec("sudo systemctl is-active $service"));
+    public static function checkServiceIsActive(string $services): bool{
         
-        return $output === 'active'; 
-    }
+        $servicesArr = explode(' ', $services);
+        foreach ($servicesArr as $service) {
+            $output = trim(shell_exec("sudo systemctl is-active $service"));
+            if ($output !== 'active') {
+                return false;
+            }
+        }
+        return true;
+
+    } 
 
 }

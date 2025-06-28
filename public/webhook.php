@@ -2,30 +2,29 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use app\core\Bot;
+use app\core\CommandHandler;
 
-// Ler entrada do Telegram
 $input = file_get_contents("php://input");
 $data = json_decode($input, true);
 file_put_contents(__DIR__ . '/../log.txt', print_r($data, true));
 
 if (isset($data['message']['text'])) {
 
-    $message = $data['message'];
-    $text = $message['text'] ?? '';
-    $chatId = $message['chat']['id'] ?? null;
+        $message = $data['message'];
+        $text = $message['text'] ?? '';
+        $chatId = $message['chat']['id'] ?? null;
 
-    if ($chatId && $message) {
-        // Criar o bot e responder
-        $bot = new Bot();
+        if ($chatId && $message) {
+                // Criar o bot e responder
+                $bot = new CommandHandler();
 
-        // Se a requisição não vier do chat,invalida a requisição
-        if (!$bot->verifyChat($chatId)){            
-            $bot->sendMessage("Chat não autorizado."); // debug
-            return;
+                if (!$bot->verifyChat($chatId)){            
+                        $bot->sendMessage("Chat não autorizado."); // debug
+                        return;
+                }
+
+                $bot->handleTextCommand($text);
+
+                // $bot->sendBotStatus($text); 
         }
-        
-        $bot->receiveCommand($text);
-    }
-
 }
