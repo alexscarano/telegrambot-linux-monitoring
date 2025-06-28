@@ -1,22 +1,31 @@
 <?php
 
-
 require __DIR__ . '/../vendor/autoload.php';
 
 use app\core\Bot;
 
-
-file_put_contents(__DIR__ . '/../log.txt', date('c') . " - Webhook ativado\n", FILE_APPEND);
-
 // Ler entrada do Telegram
 $input = file_get_contents("php://input");
 $data = json_decode($input, true);
+$config = require __DIR__ . '/../config/config.php';
 
-// Verificar se    mensagem de texto
+
 if (isset($data['message']['text'])) {
-    $mensagem = $data['message']['text'];
 
-    // Criar o bot e responder
-    $bot = new Bot();
-    $bot->receiveCommand($mensagem);
+    $message = $data['message']['text'] ?? '';
+
+    $chatId = $message['chat']['id'] ?? null;
+
+    if (isset($chatId) && isset($text)) {
+        // Criar o bot e responder
+        $bot = new Bot();
+
+        // Se a requisição não vier do chat,invalida a requisição
+        if (!$bot->verifyChat($chatId)){            
+            return;
+        }
+        
+        $bot->receiveCommand($message);
+    }
+
 }

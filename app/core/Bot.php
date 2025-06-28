@@ -9,11 +9,11 @@ class Bot {
 
     private Api $telegram;
     private string $chatId;
+    private array|string $config = require __DIR__ . '/../config/config.php';
 
-    public function __construct(){
-        $config = require __DIR__ . '/../config/config.php';
-        $this->telegram = new Api($config['telegram_bot_token']);
-        $this->chatId = $config['chat_id'];
+    public function __construct(){ 
+        $this->telegram = new Api($this->config['telegram_bot_token']);
+        $this->chatId = $this->config['chat_id'];
     }
 
     public function sendMessage(string $message): void{
@@ -24,11 +24,17 @@ class Bot {
         ]);
     }
 
-    public function receiveCommand(string $command){
-        
+    public function receiveCommand(string $command){ 
         if ($command === '/botStatus'){
             $this->sendMessage('Bot funcionando, pronto para receber comandos');
         }
+    }
+
+    public function verifyChat(string $chatId): bool{
+        if (!in_array($chatId,  $this->config['chat_id']) && is_string($chatId)){
+            return false;
+        }
+        return true;
     }
 
 }
