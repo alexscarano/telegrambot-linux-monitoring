@@ -14,7 +14,7 @@ class Bot {
         protected string $chatId; 
         protected array $config; 
 
-        public function __construct(){ 
+        protected function __construct(){ 
                 $this->config = require __DIR__ . '/../config/config.php';
                 $this->telegram = new Api($this->config['telegram_bot_token']);
                 $this->chatId = $this->config['chat_id'];

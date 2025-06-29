@@ -1,8 +1,6 @@
 <?php 
 
 namespace app\core;
-use app\core\Monitor;
-use Exception;
 
 class CommandHandler extends Bot{
     private const DEFAULT_RESPONSE = 'Este comando não existe ou foi digitado incorretamente, tente novamente';
@@ -14,18 +12,6 @@ class CommandHandler extends Bot{
         $this->sendMessage($this::DEFAULT_RESPONSE);
     } 
 
-    private function sendServiceIsActive(string $service): void{
-            try {
-                Monitor::checkServiceIsActive($service) 
-                ? $this->sendMessage('O serviço ' . $service . ' está ativo')
-                :
-                  $this->sendMessage('O serviço ' . $service . ' não está ativo');
-            }
-            catch (Exception $e){
-                $this->sendMessage('Ocorreu algum erro na execução do comando'); // Debug
-            }
-    }
-
     protected function sendBotStatus(): void {
             $this->sendMessage('Bot funcionando, pronto para receber comandos');
     }
@@ -35,6 +21,20 @@ class CommandHandler extends Bot{
         return preg_match('/^\/\w+/', $command);
     }
 
+    // Método utilizado para processar argumentos do comando
+    private function argsProcessor($method, array $args): void{
+        if (!empty($args)){
+            foreach ($args as $arg){
+                $message = call_user_func($method, $arg);
+                $this->sendMessage($message);  
+            }
+        }
+        else {
+            $this->sendMessage('É necessário argumentos para executar este comando');
+        }
+
+    }
+
     public function handleTextCommand(string $text): void{
 
         $partsArray = explode(' ', trim($text));
@@ -42,27 +42,29 @@ class CommandHandler extends Bot{
         $args = array_slice($partsArray, 1);
 
         if (!$this::IsCommand($command)) return;
-     
-        if ($command === '/checkService'){
-            if (!empty($args)){
-                foreach ($args as $arg){
-                    $this->sendServiceIsActive($arg);
-                }
-                return;
-            }
-            else {
-                $this->sendMessage('Por favor forneça argumentos para o comando: exemplo apache2, mysql, nginx...');
-                return;
-            }
+
+        // Cada case é um comando a ser processado
+        switch ((string)$command){
+            // Checa se um serviço dentro do node está ativo
+            case '/checkService':
+               $this->argsProcessor(['app\core\Monitor', 'checkServiceIsActive'], $args); 
+               break;
+            
+            // Envia o status do bot, se ele estiver on  
+            case '/checkSite':
+                $this->argsProcessor(['app\core\Monitor', 'checkWebsiteIsActive'], $args); 
+                break;
+
+            case '/botStatus':
+                $this->sendBotStatus();
+                break;
+
+            default:
+                $this->sendDefaultResponse();
+                break;
         }
 
-        if ($command === '/botStatus'){
-            $this->sendBotStatus();
-            return;
-        }
-        
-        $this->sendDefaultResponse();
-        
+
     }
 
 

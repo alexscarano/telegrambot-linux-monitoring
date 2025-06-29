@@ -2,6 +2,7 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use app\core\Bot;
 use app\core\CommandHandler;
 
 $input = file_get_contents("php://input");
