@@ -1,8 +1,17 @@
 <?php
 
-return 
+return
 [
     'telegram_bot_token' => '',
-    'chat_id' => '', 
+    'chat_id' => '',
     'chat_type' => 'group',
+    'ssh_config' => 
+    [
+        'hostname' => '',
+        'user' => '',
+        'port' => '',
+        'password' => '',
+        'private_key_path' => ''
+    ]
 ];
+

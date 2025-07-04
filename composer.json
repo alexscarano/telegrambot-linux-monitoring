@@ -14,6 +14,7 @@
         }
     ],
     "require": {
-        "irazasyed/telegram-bot-sdk": "^3.15"
+        "irazasyed/telegram-bot-sdk": "^3.15",
+        "phpseclib/phpseclib": "^3.0"
     }
 }

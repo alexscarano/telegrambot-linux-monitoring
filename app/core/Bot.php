@@ -4,11 +4,11 @@ namespace app\core;
 
 use Telegram\Bot\Api;
 
+
 /*
  CLASSE PARA AS FUNÇÕES BÁSICAS DE BOT 
   A CLASSE DE OPERAÇÕES DE COMANDOS É A CommandHandler, 
-*/
-
+ */
 class Bot {
         protected Api $telegram;
         protected string $chatId; 
@@ -23,6 +23,11 @@ class Bot {
                 return $this->config;
         }
 
+        /**
+         * Função básica do bot de enviar mensagens
+         * @param string $message
+         * @return void
+         */
         protected function sendMessage(string $message): void{
                 $this->telegram->sendMessage([
                         'chat_id' => $this->chatId,
@@ -33,6 +38,12 @@ class Bot {
   
         /* Troque pelo tipo de chat que vem no JSON, o meu será group,
         Porém também pode ser private, supergroup e etc... */
+        /**
+         * Verifica o chat no qual a requisição vem.
+         * @param string $chatId
+         * @param string $chatType
+         * @return bool
+         */
         public function verifyChat(string $chatId, string $chatType = 'group'): bool{ 
                 
                 if ($chatId !== $this->config['chat_id']) {

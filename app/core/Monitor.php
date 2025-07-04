@@ -5,18 +5,30 @@ namespace app\core;
 use Exception;
 
 class Monitor {
+
+    /**
+     * Checa se um serviço específico está rodando utilizando o systemctl (systemd)
+     * @param string $service
+     * @return string|null
+     */
     public static function checkServiceIsActive(string $service): string{
         
-        if (is_string($service)){
-            $output = trim(shell_exec("sudo systemctl is-active $service"));
-        }
-        
+        $output = trim(shell_exec("sudo systemctl is-active $service"));
+     
+        if (empty($output)) return null;
+
         if ($output === 'active') 
             return 'O serviço ' . $service . ' está ativo';
         
         return 'O serviço ' . $service . ' não está ativo ou falhou';
     } 
 
+    /**
+     * Faz uma requisição HTTP para verificar se um website está ativo
+     * @param string $url
+     * @throws \Exception
+     * @return string
+     */
     public static function checkWebsiteIsActive(string $url): string{
 
         if (!function_exists('curl_init')) {
@@ -68,5 +80,13 @@ class Monitor {
         }
 
     }
+
+   /**
+    * Retorna a quantidade de tempo que o host está ligado
+    * @return string
+    */
+   public static function checkUptime(){
+        return trim(shell_exec("uptime -p | sed 's/up //;s/[0-9]* day[s]*, //g'"));
+   } 
 
 }
