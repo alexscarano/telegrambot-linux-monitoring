@@ -77,6 +77,11 @@ class CommandHandler extends Bot{
                 $this->sendBotStatus();
                 break;
 
+            case '/uptime':
+                $response = Monitor::checkUptime();
+                $this->sendMessage($response);
+                break;
+
             default:
                 $this->sendDefaultResponse();
                 break;

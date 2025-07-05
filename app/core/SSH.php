@@ -17,7 +17,6 @@ class SSH {
 
     /**
      * Inicializando o SSH com base no arquivo de configurações
-     * @throws \Exception
      */
     public function __construct(){
         $this->config = require __DIR__ . '/../config/config.php';
@@ -34,7 +33,7 @@ class SSH {
      * @throws \Exception
      * @return void
      */
-    public function auth(){
+    public function auth(): void{
         if (!empty($this?->private_key_path)){
             $key = PublicKeyLoader::load(file_get_contents($this?->private_key_path));
             if (!$this->ssh->login($this->user, $key)){
@@ -50,11 +49,50 @@ class SSH {
     }
 
     /**
-     * Método para verificar se há uma conexão SSH
+     * Executar um comando remotamente
+     * @param string $command
+     * @return string
+     */
+    public function exec(string $command): string {
+        return trim($this->ssh->exec($command));
+    }
+
+    /**
+     * Método para verificar se há uma conexão SSH, não quer dizer que a conexão foi concluida
      * @return bool
      */
     public function isConnected(): bool{
         return $this->ssh->isConnected();
+    }
+
+    /**
+     * Verificar se existe autenticação, se retornar true, quer dizer que ocorreu tudo corretamente
+     * @return bool
+     */
+    public function isAuthenticated(): bool {
+        return $this->ssh->isAuthenticated();
+    }
+
+    /**
+     * Desconectar do SSH 
+     * @return void
+     */
+    public function disconnect(): void{
+        try{
+            $this->ssh->disconnect();
+        }
+        catch(Exception $e){
+            throw $e;
+        }
+    }
+
+    /**
+     * Caso não seja fechada a conexão no próprio monitor
+     */
+    public function __destruct(){
+        if ($this->isConnected()){
+            $this->disconnect();
+        }
     }
 
 }

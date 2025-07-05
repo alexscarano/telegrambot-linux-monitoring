@@ -3,24 +3,30 @@
 namespace app\core;
 
 use Exception;
+use app\core\SSH;
 
 class Monitor {
-
+    
     /**
      * Checa se um serviço específico está rodando utilizando o systemctl (systemd)
      * @param string $service
      * @return string|null
      */
-    public static function checkServiceIsActive(string $service): string{
+    public static function checkServiceIsActive(string $service): string|null{
         
-        $output = trim(shell_exec("sudo systemctl is-active $service"));
-     
+        $ssh = new SSH();
+        $ssh->auth();
+
+        if ($ssh->isAuthenticated()){
+            $output = $ssh->exec("sudo /usr/bin/systemctl is-active {$service}");
+            $ssh->disconnect();
+        }
+
         if (empty($output)) return null;
 
-        if ($output === 'active') 
-            return 'O serviço ' . $service . ' está ativo';
-        
-        return 'O serviço ' . $service . ' não está ativo ou falhou';
+        return $output === 'active' ?
+        "O serviço  {$service} está ativo"
+        : "O serviço {$service} não está ativo ou falhou";
     } 
 
     /**
@@ -56,27 +62,27 @@ class Monitor {
 
         switch ((int) $http_status) {
             case 200:
-                return "O site está ativo e respondendo normalmente (Status " . $http_status . ").";
+                return "O site está ativo e respondendo normalmente (Status:  {$http_status}).";
             case 400: // Bad Request
-                return "O servidor não conseguiu processar a requisição (Status " . $http_status . ")."; 
+                return "O servidor não conseguiu processar a requisição (Status:  {$http_status})."; 
             case 401: // Unauthorized
-                return "Acesso não autorizado (Status " . $http_status . ").";
+                return "Acesso não autorizado (Status: {$http_status}).";
             case 403: // Forbidden
-                return "O acesso ao site foi negado ou a requisição é inválida (Status " . $http_status . ").";
+                return "O acesso ao site foi negado ou a requisição é inválida (Status: {$http_status}).";
             case 404: // Not Found
-                return "O site ou a página não foi encontrada (Status " . $http_status . ").";
+                return "O site ou a página não foi encontrada (Status: {$http_status}).";
             case 500: // Internal Server Error
-                return "Erro interno no servidor (Status " . $http_status . ").";
+                return "Erro interno no servidor (Status: {$http_status}).";
             case 502: // Bad Gateway
-                return "Resposta inválida (Status " . $http_status . ").";
+                return "Resposta inválida (Status: {$http_status}).";
             case 503: // Service Unavailable
-                return "Serviço inativo (Status " . $http_status . ").";
+                return "Serviço inativo (Status: {$http_status}).";
             case 504: // Gateway Timeout
-                return "Ocorreu um erro no servidor ou o serviço está indisponível (Status " . $http_status . ").";
+                return "Ocorreu um erro no servidor ou o serviço está indisponível (Status: {$http_status}).";
             case 0: // Caso o cURL falhe completamente ou haja um timeout
                 return "Não foi possível conectar ao site ou a requisição expirou. Verifique a URL ou a conexão.";
             default:
-                return "O site retornou um status inesperado (" . $http_status . "). Sugiro verificar manualmente.";
+                return "O site retornou um status inesperado (Status: {$http_status}). Sugiro verificar manualmente.";
         }
 
     }
@@ -85,8 +91,25 @@ class Monitor {
     * Retorna a quantidade de tempo que o host está ligado
     * @return string
     */
-   public static function checkUptime(){
-        return trim(shell_exec("uptime -p | sed 's/up //;s/[0-9]* day[s]*, //g'"));
-   } 
+    public static function checkUptime():string {
+
+        $ssh = new SSH();
+        $ssh->auth();
+
+        if ($ssh->isAuthenticated()){
+            $response = $ssh->exec("uptime -p | sed 's/up //;s/[0-9]* day[s]*, //g'");
+            $ssh->disconnect();
+        }
+
+        if (!empty($response))
+            return $response;
+
+        return "Não foi possível fazer está consulta";
+    }
+
+
+
+
+
 
 }
