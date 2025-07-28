@@ -25,7 +25,7 @@ class Monitor {
         if (empty($output)) return null;
 
         return $output === 'active' ?
-        "O serviço  {$service} está ativo"
+        "O serviço {$service} está ativo"
         : "O serviço {$service} não está ativo ou falhou";
     } 
 
@@ -87,26 +87,77 @@ class Monitor {
 
     }
 
-   /**
-    * Retorna a quantidade de tempo que o host está ligado
-    * @return string
-    */
-    public static function checkUptime():string {
+    /**
+     * Retorna status geral, uso de disco, memória, ip local, ip público, temperatura de cpu e etc.
+     * @return array|array{cpuTemp: string, diskUsage: string, localIp: string, memoryUsage: string, publicIp: string, uptime: string}
+     */
+    public static function generalStatus(): array{
 
         $ssh = new SSH();
         $ssh->auth();
 
         if ($ssh->isAuthenticated()){
-            $response = $ssh->exec("uptime -p | sed 's/up //;s/[0-9]* day[s]*, //g'");
+
+            $hostname = $ssh->exec("hostname");
+            $uptime = $ssh->exec("uptime -p | sed 's/up //'");
+            $diskUsage = $ssh->exec('df -h / | awk \'NR==2 {print $4 " livre de " $2}\'');
+            $memoryUsage = $ssh->exec('free -m | awk \'/^Mem:/ {print $3 " MB usados de " $2 " MB"}\'');
+            $localIp = $ssh->exec('hostname -I | awk \'{print $2}\'');
+            $publicIp = $ssh->exec('curl -s ifconfig.me || echo "indisponível"');
+            $cpuTemp = $ssh->exec('command -v sensors >/dev/null && sensors | grep -m1 \'Package id 0:\' | awk \'{print $4}\' || echo "indisponível"');
+                        
+            $responses = 
+            [
+                'hostname' => $hostname,
+                'uptime' => $uptime,
+                'diskUsage' => $diskUsage,
+                'memoryUsage' => $memoryUsage,
+                'localIp' => $localIp,
+                'publicIp' => $publicIp,
+                'cpuTemp' => $cpuTemp
+            ];
+
             $ssh->disconnect();
+            
+            if (!empty($responses)){
+                return $responses;
+            }
+            
         }
 
-        if (!empty($response))
-            return $response;
+        return [];
 
-        return "Não foi possível fazer está consulta";
     }
 
+    public static function scanNetwork(string $interface = 'vmbr0'): array {
+        $ssh = new SSH();
+        $ssh->auth();
+
+        $output = $ssh->exec("sudo /usr/sbin/arp-scan --interface={$interface} --localnet");
+ 
+        if (empty($output)) {
+            return [];
+        }
+
+        $devices = [];
+        $devicesCount = 1;
+        $lines = explode("\n", $output);
+ 
+        foreach ($lines as $line) {
+        // ignora cabeçalhos ou linhas em branco
+        if (preg_match('/^([\d\.]+)\s+([0-9A-Fa-f:]{17})\s+(.+)$/', $line, $matches)) {
+            $devices[] = [
+                'ip' => $matches[1],
+                'mac' => $matches[2],
+                'vendor' => trim($matches[3]),
+                'device_count' => $devicesCount
+                ];
+            ++$devicesCount;
+            }
+        }
+
+        return $devices;
+    }
 
 
 

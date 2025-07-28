@@ -8,12 +8,12 @@ use phpseclib3\Net\SSH2;
 
 class SSH {
     private SSH2 $ssh;
-    private string $hostname;
-    private string $user;
-    private ?string $port; 
-    private ?string $password;
-    private ?string $private_key_path;
-    private array $config;
+    private readonly string $hostname;
+    private readonly string $user;
+    private readonly ?string $port; 
+    private readonly ?string $password;
+    private readonly ?string $private_key_path;
+    private readonly array $config;
 
     /**
      * Inicializando o SSH com base no arquivo de configurações
@@ -38,7 +38,7 @@ class SSH {
             $key = PublicKeyLoader::load(file_get_contents($this?->private_key_path));
             if (!$this->ssh->login($this->user, $key)){
                 throw new Exception("Falha em fazer login {$this->hostname}@{$this->user}");
-            } 
+            }  
         }
         
         if (!empty($this?->password)){

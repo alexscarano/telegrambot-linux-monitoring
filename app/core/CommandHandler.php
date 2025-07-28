@@ -2,6 +2,8 @@
 
 namespace app\core;
 
+use app\support\Wol;
+
 class CommandHandler extends Bot{
  
     private const DEFAULT_RESPONSE = 'Este comando não existe ou foi digitado incorretamente, tente novamente';
@@ -77,16 +79,45 @@ class CommandHandler extends Bot{
                 $this->sendBotStatus();
                 break;
 
-            case '/uptime':
-                $response = Monitor::checkUptime();
-                $this->sendMessage($response);
+            case '/checkUpDevices':
+                $devices = Monitor::scanNetwork('vmbr0');
+                if (empty($devices)) {
+                    $this->sendMessage("Nenhum dispositivo encontrado na rede.");
+                } else {
+                    $message = "🖥️ *Dispositivos encontrados:*\n";
+                    foreach ($devices as $d) {
+                        $message .= "``` {$d['ip']} - {$d['mac']} - *{$d['vendor']}*\n```";
+                    }
+                    $message .=  PHP_EOL .  "⚡ *Quantidade de hosts ativos: {$d['device_count']}*";
+                    $this->sendMessage($message);
+                }
                 break;
 
+            case '/status':
+                $response = Monitor::generalStatus();
+
+                if (empty($response)) {
+                    return;
+                }
+                
+                $message = 
+                "```
+                🖥️ Máquina: {$response['hostname']}
+                ⏱️ Uptime: {$response['uptime']}
+                💽 Espaço em disco: {$response['diskUsage']}
+                🧠 Memória usada: {$response['memoryUsage']}
+                📡 IP local: {$response['localIp']}
+                🌍 IP público: {$response['publicIp']}
+                🌡️ Temp. da CPU: {$response['cpuTemp']}
+                ```";
+
+                $this->sendMessage($message); 
+                break;
+            
             default:
                 $this->sendDefaultResponse();
                 break;
         }
-
 
     }
 

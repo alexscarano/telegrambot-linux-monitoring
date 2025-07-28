@@ -11,8 +11,8 @@ use Telegram\Bot\Api;
  */
 class Bot {
         protected Api $telegram;
-        protected string $chatId; 
-        protected array $config; 
+        protected readonly string $chatId; 
+        protected readonly array $config; 
 
         protected function __construct(){ 
                 $this->config = require __DIR__ . '/../config/config.php';
